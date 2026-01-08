@@ -1,0 +1,98 @@
+package org.apache.bookkeeper.bookie;
+
+import io.netty.buffer.*;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
+import static org.mockito.Mockito.*;
+
+public class BufferedChannelUtils {
+
+    /**
+     * Nome del file che verrà usato nei test dei FileChannel.
+     */
+    public static final String BC_TEST_FILE = "bc_test_file.txt";
+
+    /**
+     * Contenuto scritto nei file del FileChannel.
+     */
+    public static final String BC_FC_CONTENT = "Hello world!";
+
+    /**
+     * Contenuto testuale per i ByteBuf di Netty.
+     */
+    public static final String BC_BB_CONTENT = "Ciao mondo!";
+
+    private BufferedChannelUtils() {
+        // Utility class
+    }
+
+    // ===================== BYTEBUF ALLOCATORS ===================== //
+
+    public static ByteBufAllocator unpooledByteBufAllocator() {
+        return UnpooledByteBufAllocator.DEFAULT;
+    }
+
+    public static ByteBufAllocator invalidByteBufAllocator() {
+        ByteBufAllocator bba = mock(ByteBufAllocator.class);
+
+        // Mock generico per tutti i ByteBuf
+        when(bba.buffer()).thenReturn(null);
+        when(bba.buffer(anyInt())).thenReturn(null);
+        when(bba.buffer(anyInt(), anyInt())).thenReturn(null);
+        when(bba.compositeBuffer()).thenReturn(null);
+        when(bba.compositeBuffer(anyInt())).thenReturn(null);
+        when(bba.compositeDirectBuffer()).thenReturn(null);
+        when(bba.compositeDirectBuffer(anyInt())).thenReturn(null);
+        when(bba.compositeHeapBuffer()).thenReturn(null);
+        when(bba.compositeHeapBuffer(anyInt())).thenReturn(null);
+        when(bba.directBuffer()).thenReturn(null);
+        when(bba.directBuffer(anyInt())).thenReturn(null);
+        when(bba.directBuffer(anyInt(), anyInt())).thenReturn(null);
+        when(bba.heapBuffer()).thenReturn(null);
+        when(bba.heapBuffer(anyInt())).thenReturn(null);
+        when(bba.heapBuffer(anyInt(), anyInt())).thenReturn(null);
+        when(bba.ioBuffer()).thenReturn(null);
+        when(bba.ioBuffer(anyInt())).thenReturn(null);
+        when(bba.ioBuffer(anyInt(), anyInt())).thenReturn(null);
+
+        return bba;
+    }
+
+    // ===================== FILE CHANNELS ===================== //
+
+    private static FileChannel createFileChannel(OpenOption... options) throws IOException {
+        Path path = Paths.get(BC_TEST_FILE);
+        if (Files.exists(path)) Files.delete(path);
+        Files.createFile(path);
+        Files.write(path, BC_FC_CONTENT.getBytes());
+        FileChannel fc = FileChannel.open(path, options);
+        fc.position(BC_FC_CONTENT.length());
+        return fc;
+    }
+
+    public static FileChannel validFileChannel() throws IOException {
+        return createFileChannel(StandardOpenOption.READ, StandardOpenOption.WRITE);
+    }
+
+    public static FileChannel closedFileChannel() throws IOException {
+        FileChannel fc = validFileChannel();
+        fc.close();
+        return fc;
+    }
+
+    public static FileChannel readOnlyFileChannel() throws IOException {
+        return createFileChannel(StandardOpenOption.READ);
+    }
+
+    public static FileChannel writeOnlyFileChannel() throws IOException {
+        return createFileChannel(StandardOpenOption.WRITE);
+    }
+
+    public static FileChannel invalidPositionFileChannel() throws IOException {
+        FileChannel fc = spy(validFileChannel());
+        when(fc.position()).thenReturn(-1L);
+        return fc;
+    }
+
+}
