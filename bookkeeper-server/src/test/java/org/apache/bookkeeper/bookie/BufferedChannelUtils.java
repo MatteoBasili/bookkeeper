@@ -4,6 +4,8 @@ import io.netty.buffer.*;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
+import java.util.Arrays;
+
 import static org.mockito.Mockito.*;
 
 public class BufferedChannelUtils {
@@ -93,6 +95,39 @@ public class BufferedChannelUtils {
         FileChannel fc = spy(validFileChannel());
         when(fc.position()).thenReturn(-1L);
         return fc;
+    }
+
+    // ===================== BYTEBUFFERS ===================== //
+
+    public static ByteBuf emptySrcByteBuf() {
+        return Unpooled.buffer(0, BC_BB_CONTENT.length());
+    }
+
+    public static ByteBuf srcByteBufWithLength(int len) {
+        ByteBuf buffer = Unpooled.buffer(len, len);
+        byte[] data = new byte[len];
+        Arrays.fill(data, (byte) 'a');
+        buffer.writeBytes(data);
+        return buffer;
+    }
+
+    public static ByteBuf invalidReadIndexSrcByteBuf() {
+        ByteBuf buffer = spy(srcByteBufWithLength(BC_BB_CONTENT.length()));
+        when(buffer.readerIndex()).thenReturn(-1);
+        return buffer;
+    }
+
+    public static ByteBuf deallocatedSrcByteBuf() {
+        ByteBuf buffer = srcByteBufWithLength(BC_BB_CONTENT.length());
+        buffer.release(); // refCnt = 0
+        return buffer;
+    }
+
+    public static ByteBuf srcByteBufWithContent() {
+        byte[] data = BC_BB_CONTENT.getBytes();
+        ByteBuf buffer = Unpooled.buffer(data.length, data.length);
+        buffer.writeBytes(data);
+        return buffer;
     }
 
 }
