@@ -10,19 +10,9 @@ import static org.mockito.Mockito.*;
 
 public class BufferedChannelUtils {
 
-    /**
-     * Nome del file che verrà usato nei test dei FileChannel.
-     */
     public static final String BC_TEST_FILE = "bc_test_file.txt";
 
-    /**
-     * Contenuto scritto nei file del FileChannel.
-     */
     public static final String BC_FC_CONTENT = "Hello world!";
-
-    /**
-     * Contenuto testuale per i ByteBuf di Netty.
-     */
     public static final String BC_BB_CONTENT = "Ciao mondo!";
 
     private BufferedChannelUtils() {
