@@ -63,7 +63,7 @@
               <goal>exec</goal>
             </goals>
             <configuration>
-              <skip>${skipTests}</skip>
+              <skip>${skip.bash.tests}</skip>
               <workingDirectory>${project.basedir}/src/test/bash</workingDirectory>
               <executable>${project.basedir}/src/test/bash/bk_test.sh</executable>
             </configuration>

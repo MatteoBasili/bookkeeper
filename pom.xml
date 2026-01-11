@@ -1490,5 +1490,17 @@
         </pluginManagement>
       </build>
     </profile>
+    <profile>
+      <id>skip-bash-tests</id>
+      <activation>
+        <property>
+          <name>os.name</name>
+          <value>Windows 10</value>
+        </property>
+      </activation>
+      <properties>
+        <skip.bash.tests>true</skip.bash.tests>
+      </properties>
+    </profile>
   </profiles>
 </project>
