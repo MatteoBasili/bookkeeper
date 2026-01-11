@@ -99,11 +99,24 @@ public class BufferedChannelUtils {
 
     // ===================== BYTEBUFFERS ===================== //
 
-    public static ByteBuf emptySrcByteBuf() {
-        return Unpooled.buffer(0, BC_BB_CONTENT.length());
+    public static ByteBuf emptyByteBuf() {
+        return Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length() + 1, BC_FC_CONTENT.length() + BC_BB_CONTENT.length() + 1);
     }
 
-    public static ByteBuf srcByteBufWithLength(int len) {
+    public static ByteBuf fullByteBuf() {
+        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length());
+        buffer.writeBytes(BC_FC_CONTENT.getBytes());
+        buffer.writeBytes(BC_BB_CONTENT.getBytes());
+        return buffer;
+    }
+
+    public static ByteBuf semiFullByteBuf() {
+        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length() );
+        buffer.writeBytes(BC_BB_CONTENT.getBytes());
+        return buffer;
+    }
+
+    public static ByteBuf byteBufWithLength(int len) {
         ByteBuf buffer = Unpooled.buffer(len, len);
         byte[] data = new byte[len];
         Arrays.fill(data, (byte) 'a');
@@ -111,23 +124,40 @@ public class BufferedChannelUtils {
         return buffer;
     }
 
-    public static ByteBuf invalidReadIndexSrcByteBuf() {
-        ByteBuf buffer = spy(srcByteBufWithLength(BC_BB_CONTENT.length()));
+    public static ByteBuf invalidReadIndexByteBuf() {
+        ByteBuf buffer = spy(byteBufWithLength(BC_BB_CONTENT.length()));
         when(buffer.readerIndex()).thenReturn(-1);
         return buffer;
     }
 
-    public static ByteBuf deallocatedSrcByteBuf() {
-        ByteBuf buffer = srcByteBufWithLength(BC_BB_CONTENT.length());
+    public static ByteBuf invalidWriteIndexByteBuf() {
+        ByteBuf buffer = spy(semiFullByteBuf());
+        int wIdx = BC_BB_CONTENT.length();
+        when(buffer.writerIndex()).thenReturn(wIdx);
+        when(buffer.readerIndex()).thenReturn(wIdx + 1);
+        return buffer;
+    }
+
+    public static ByteBuf deallocatedByteBuf() {
+        ByteBuf buffer = byteBufWithLength(BC_FC_CONTENT.length() + BC_BB_CONTENT.length());
         buffer.release(); // refCnt = 0
         return buffer;
     }
 
-    public static ByteBuf srcByteBufWithContent() {
+    public static ByteBuf byteBufWithContent() {
         byte[] data = BC_BB_CONTENT.getBytes();
         ByteBuf buffer = Unpooled.buffer(data.length, data.length);
         buffer.writeBytes(data);
         return buffer;
+    }
+
+    // ===================== PULIZIA ===================== //
+
+    public static void deleteFile() throws IOException {
+        Path path = Paths.get(BC_TEST_FILE);
+        if (Files.exists(path)) {
+            Files.delete(path);
+        }
     }
 
 }

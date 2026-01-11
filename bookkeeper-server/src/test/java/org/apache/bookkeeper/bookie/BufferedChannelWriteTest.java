@@ -15,9 +15,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
@@ -39,25 +36,25 @@ public class BufferedChannelWriteTest {
      * - src
      * - Classe di eccezione attesa (null se non ci si aspetta eccezione)
      */
-    private static Stream<Arguments> data() {
+    private static Stream<Arguments> testCases() {
         try {
             return Stream.of(
                     // -------------------- Varia src -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, emptySrcByteBuf(), null),                               // W1: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, srcByteBufWithLength(127), null),                       // W2: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, emptyByteBuf(), null),                               // W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(127), null),                       // W2: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, srcByteBufWithLength(128), null),                       // W3: Fallito --> Buffer scritto, ma unpersistedBytes non coerente
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, srcByteBufWithLength(129), null),                       // W4: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, invalidReadIndexSrcByteBuf(), Exception.class),         // W5: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, deallocatedSrcByteBuf(), Exception.class),              // W6: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(129), null),                       // W4: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, invalidReadIndexByteBuf(), Exception.class),         // W5: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, deallocatedByteBuf(), Exception.class),              // W6: Superato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, null, Exception.class),                                 // W7: Superato
 
                     // -------------------- Istanze fallite del costruttore -------------------- //
-                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, srcByteBufWithContent(), Exception.class),               // W8: Superato
+                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithContent(), Exception.class),               // W8: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 256, 256, 128, srcByteBufWithLength(129), Exception.class),  // W9 (T7): Fallito --> La write non ha lanciato l'eccezione attesa
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, srcByteBufWithContent(), Exception.class),               // W10 (T15): Fallito --> La write non ha lanciato l'eccezione attesa
 
                     // -------------------- FileChannel non valido -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, srcByteBufWithLength(129), Exception.class)         // W11: Superato
+                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class)         // W11: Superato
 
                     // -------------------- writeCapacity non valida -------------------- //
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 256, 128, srcByteBufWithContent(), Exception.class),                // W12: Errore --> Timeout
@@ -71,7 +68,7 @@ public class BufferedChannelWriteTest {
     }
 
     @ParameterizedTest
-    @MethodSource("data")
+    @MethodSource("testCases")
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void testWrite(ByteBufAllocator allocator,
                    FileChannel fc,
@@ -79,7 +76,7 @@ public class BufferedChannelWriteTest {
                    int readCapacity,
                    long unpersistedBytesBound,
                    ByteBuf src,
-                   Class<? extends Exception> expectedException) {
+                   Class<Exception> expectedException) {
 
         BufferedChannel bc;
         long initialFcPosition;
@@ -155,10 +152,7 @@ public class BufferedChannelWriteTest {
      */
     @AfterEach
     void cleanup() throws IOException {
-        Path path = Paths.get(BC_TEST_FILE);
-        if (Files.exists(path)) {
-            Files.delete(path);
-        }
+        deleteFile();
     }
 
 }

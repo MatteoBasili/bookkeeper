@@ -11,9 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
@@ -36,7 +33,7 @@ public class BufferedChannelConstructorTest {
      * - unpersistedBytesBound
      * - Classe di eccezione attesa (null se non ci si aspetta eccezione)
      */
-    private static Stream<Arguments> data() {
+    private static Stream<Arguments> testCases() {
         try {
             return Stream.of(
                     // -------------------- Varia l'allocatore -------------------- //
@@ -76,14 +73,14 @@ public class BufferedChannelConstructorTest {
      * Controlla sia i casi validi che quelli che devono generare eccezioni.
      */
     @ParameterizedTest
-    @MethodSource("data")
+    @MethodSource("testCases")
     @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     void testConstructor(ByteBufAllocator allocator,
                          FileChannel fc,
                          int writeCapacity,
                          int readCapacity,
                          long unpersistedBytesBound,
-                         Class<? extends Exception> expectedException) {
+                         Class<Exception> expectedException) {
 
         if (expectedException != null) {
             // Caso in cui ci si aspetta un'eccezione
@@ -95,7 +92,7 @@ public class BufferedChannelConstructorTest {
 
     }
 
-    // ============================ HELPER METHODS ============================ //
+    // ============================ METODI DI SUPPORTO ============================ //
 
     /**
      * Verifica che il costruttore lanci l'eccezione prevista.
@@ -105,7 +102,7 @@ public class BufferedChannelConstructorTest {
                                         int writeCapacity,
                                         int readCapacity,
                                         long unpersistedBytesBound,
-                                        Class<? extends Exception> expectedException) {
+                                        Class<Exception> expectedException) {
 
         Assertions.assertThrows(
                 expectedException,
@@ -173,10 +170,7 @@ public class BufferedChannelConstructorTest {
      */
     @AfterEach
     void deleteTestFile() throws IOException {
-        Path path = Paths.get(BC_TEST_FILE);
-        if (Files.exists(path)) {
-            Files.delete(path);
-        }
+        deleteFile();
     }
 
 }
