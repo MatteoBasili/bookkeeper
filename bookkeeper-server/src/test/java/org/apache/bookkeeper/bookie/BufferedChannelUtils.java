@@ -16,7 +16,7 @@ public class BufferedChannelUtils {
     public static final String BC_BB_CONTENT = "Ciao mondo!";
 
     private BufferedChannelUtils() {
-        // Utility class
+        // Classe di utilità
     }
 
     // ===================== BYTEBUF ALLOCATORS ===================== //

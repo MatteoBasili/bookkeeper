@@ -410,7 +410,7 @@
               </execution>
               <execution>
                 <id>report</id>
-                <phase>verify</phase>
+                <phase>test</phase>
                 <configuration>
                   <includes>
                     <include>org/apache/bookkeeper/bookie/BufferedChannel.class</include>
@@ -426,5 +426,89 @@
         </plugins>
       </build>
     </profile>
+	
+	<!--  Ba-dua  -->
+	<profile>
+      <id>badua-coverage</id>
+      <dependencies>
+        <dependency>
+          <groupId>br.usp.each.saeg</groupId>
+          <artifactId>ba-dua-agent-rt</artifactId>
+          <version>0.6.0</version>
+        </dependency>
+        <dependency>
+          <groupId>br.usp.each.saeg</groupId>
+          <artifactId>ba-dua-cli</artifactId>
+          <version>0.6.0</version>
+        </dependency>
+      </dependencies>
+	  <build>
+        <plugins>
+          <!-- Copia dell'agente -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>br.usp.each.saeg</groupId>
+                      <artifactId>ba-dua-agent-rt</artifactId>
+                      <classifier>all</classifier>
+                      <version>0.6.0</version>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Esegui i test -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>
+                -javaagent:target/dependency/ba-dua-agent-rt-${ba-dua.version}-all.jar
+                -Doutput.file=target/coverage.ser
+              </argLine>
+            </configuration>
+          </plugin>
+          <!-- Produce report -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.5.0</version>
+            <executions>
+              <!-- Produce Badua report -->
+              <execution>
+                <goals>
+                  <goal>java</goal>
+                </goals>
+                <phase>test</phase>
+                <configuration>
+                  <mainClass>br.usp.each.saeg.badua.cli.Report</mainClass>
+                  <arguments>
+                    <argument>-input</argument>
+                    <argument>${project.build.directory}/coverage.ser</argument>
+                    <argument>-classes</argument>
+                    <argument>${project.build.outputDirectory}</argument>
+                    <argument>-show-classes</argument>
+                    <argument>-show-methods</argument>
+                    <argument>-xml</argument>
+                    <argument>${project.build.directory}/badua.xml</argument>
+                  </arguments>
+                </configuration>
+              </execution>              
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+	
   </profiles>
 </project>

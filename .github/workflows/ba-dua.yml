@@ -1,0 +1,52 @@
+name: Ba-dua
+
+on:
+  push:
+    branches: [ testing-exam ]
+
+jobs:
+  build:
+    name: Build, Test and Analyze
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout del codice
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup Java 17
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Cache Maven
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Clone e build del repository di Ba-dua
+      - name: Clone and build ba-dua repository
+        run: |
+          git clone https://github.com/saeg/ba-dua
+          cd ba-dua
+          git checkout d2401f0
+          mvn clean install
+          cd ..
+
+      # Build + Test + Ba-dua
+      - name: Build and analyze
+        run: mvn -B clean verify -Pskip-bash-tests,badua-coverage -Dmaven.test.failure.ignore=true
+            
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ba-dua_Report
+          path: bookkeeper-server/target/badua.xml
+          if-no-files-found: error
