@@ -43,10 +43,32 @@ jobs:
       # Build + Test + Ba-dua
       - name: Build and analyze
         run: mvn -B clean verify -Pskip-bash-tests,badua-coverage -Dmaven.test.failure.ignore=true
+        
+      # Installa xmllint e xmlstarlet  
+      - name: Install XML tools
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils xmlstarlet  
+        
+      # Formatta il report e riducilo alla classe BufferedChannel  
+      - name: Filter Ba-dua report for BufferedChannel
+        run: |
+          cd bookkeeper-server
+
+          input_file="badua.xml"
+          modified_file="badua_pretty.xml"
+          buffered_channel_class="org/apache/bookkeeper/bookie/BufferedChannel"
+
+          xmllint --format target/$input_file > target/$modified_file
+          rm target/$input_file
+          cp target/$modified_file target/badua_BufferedChannel.xml
+
+          xmlstarlet ed -L -d \
+            "//class[not(contains(@name, '$buffered_channel_class'))]" \
+            target/badua_BufferedChannel.xml  
             
-      - name: Upload report
+      # Carica l'artifact per BufferedChannel      
+      - name: Upload BafferedChannel report
         uses: actions/upload-artifact@v4
         with:
-          name: Ba-dua_Report
-          path: bookkeeper-server/target/badua.xml
+          name: Ba-dua_BufferedChannel_Report
+          path: bookkeeper-server/target/badua_BufferedChannel.xml
           if-no-files-found: error
