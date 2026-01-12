@@ -24,6 +24,11 @@
   </parent>
   <artifactId>bookkeeper-server</artifactId>
   <name>Apache BookKeeper :: Server</name>
+  
+  <properties>    
+    <ba-dua.version>0.6.0</ba-dua.version>    
+  </properties>
+  
   <dependencies>
     <dependency>
       <groupId>org.apache.bookkeeper</groupId>
