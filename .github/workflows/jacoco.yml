@@ -1,13 +1,13 @@
-name: CI with SonarCloud
+name: Jacoco
 
 on:
   push:
     branches: [ testing-exam ]
 
 jobs:
-  build-and-analyze:
+  build:
+    name: Build, Test and Analyze
     runs-on: ubuntu-latest
-    
     steps:
       # Checkout del codice
       - name: Checkout repository
@@ -22,8 +22,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Cache Maven locale repository
-      - name: Cache Maven
+      # Cache Maven
+      - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
@@ -31,13 +31,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Build + Test + JaCoCo + SonarCloud
-      - name: Build, test and SonarCloud Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B clean verify sonar:sonar -Pjacoco-coverage,skip-bash-tests \
-            -Dsonar.projectKey=MatteoBasili_bookkeeper \
-            -Dsonar.organization=matteobasili \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN
+      # Build + Test + JaCoCo
+      - name: Build and analyze
+        run: mvn -B clean verify -Pskip-bash-tests,jacoco-coverage
+            
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jacoco_Report
+          path: bookkeeper-server/target/site/jacoco
+          if-no-files-found: error
