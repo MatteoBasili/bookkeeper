@@ -26,7 +26,8 @@
   <name>Apache BookKeeper :: Server</name>
   
   <properties>    
-    <ba-dua.version>0.6.0</ba-dua.version>    
+    <ba-dua.version>0.6.0</ba-dua.version>
+    <pitest.version>1.16.1</pitest.version>    
   </properties>
   
   <dependencies>
@@ -514,6 +515,83 @@
         </plugins>
       </build>
     </profile>
+	
+	<!--  Pit  -->
+	<profile>
+      <id>pit-mutation</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.pitest</groupId>
+          <artifactId>pitest-maven</artifactId>
+          <version>${pitest.version}</version>
+          <type>maven-plugin</type>
+        </dependency>
+        <dependency>
+          <groupId>org.pitest</groupId>
+          <artifactId>pitest-junit5-plugin</artifactId>
+          <version>1.2.0</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>${pitest.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>mutationCoverage</goal>
+                </goals>
+                <phase>test</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <threads>4</threads>
+              <targetClasses>
+                <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCache</param>
+              </targetClasses>
+              <targetTests>
+                <param>org.apache.bookkeeper.bookie.BufferedChannelConstructorTest</param>
+                <param>org.apache.bookkeeper.bookie.BufferedChannelReadTest</param>
+                <param>org.apache.bookkeeper.bookie.BufferedChannelWriteTest</param>
+<!--                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCacheConstructorTest</param>-->
+<!--                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCachePutTest</param>-->
+              </targetTests>
+              <timeoutConstant>10000</timeoutConstant>
+<!--              <mutators>--> <!-- aggiungere qui solo se si desiderano alcuni mutatori -->
+<!--                <mutator>CONSTRUCTOR_CALLS</mutator>-->
+<!--                <mutator>VOID_METHOD_CALLS</mutator>-->
+<!--                <mutator>RETURN_VALS</mutator>-->
+<!--                <mutator>NON_VOID_METHOD_CALLS</mutator>-->
+<!--                <mutator>CONDITIONALS_BOUNDARY</mutator>-->
+<!--              </mutators>-->
+              <avoidCallsTo>
+                <avoidCallsTo>java.util.logging</avoidCallsTo>
+                <avoidCallsTo>org.apache.log4j</avoidCallsTo>
+                <avoidCallsTo>org.slf4j</avoidCallsTo>
+                <avoidCallsTo>org.apache.commons.logging</avoidCallsTo>
+              </avoidCallsTo>
+              <excludedMethods>
+                <excludedMethod>close</excludedMethod>
+				<excludedMethod>flushAndForceWrite</excludedMethod> 
+				<excludedMethod>flushAndForceWriteIfRegularFlush</excludedMethod>
+				<excludedMethod>clear</excludedMethod>
+				<excludedMethod>getFileChannelPosition</excludedMethod>
+				<excludedMethod>getNumOfBytesInWriteBuffer</excludedMethod>
+				<excludedMethod>getUnpersistedBytes</excludedMethod>
+				<excludedMethod>position</excludedMethod> 				
+				<excludedMethod>forceWrite</excludedMethod>
+                <excludedMethod>flush</excludedMethod>				
+<!--                <excludedMethod>getDoRegularFlushes</excludedMethod>-->
+              </excludedMethods>
+              <verbose>false</verbose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile> 
 	
   </profiles>
 </project>
