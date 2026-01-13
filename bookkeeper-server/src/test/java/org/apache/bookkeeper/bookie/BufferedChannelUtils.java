@@ -13,7 +13,7 @@ public class BufferedChannelUtils {
     public static final String BC_TEST_FILE = "bc_test_file.txt";
 
     public static final String BC_FC_CONTENT = "Hello world!";
-    public static final String BC_BB_CONTENT = "Ciao mondo!";
+    public static final String BC_BB_CONTENT = "Ciao mondo!!";
 
     private BufferedChannelUtils() {
         // Classe di utilità

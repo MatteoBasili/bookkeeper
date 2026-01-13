@@ -152,7 +152,7 @@ public class BufferedChannelReadTest {
             String expected = computeExpectedRead(channel, position, length);
             String actual = extractWrittenString(destination, initialWriterIndex, length);
 
-            Assertions.assertEquals(expected, actual);
+            Assertions.assertEquals(expected, actual, "Il buffer di destinazione non contiene il contenuto atteso");
         } catch (Exception e) {
             throw new RuntimeException("Errore inatteso durante l'esecuzione della read di BufferedChannel", e);
         }
