@@ -61,13 +61,13 @@ public class BufferedChannelReadTest {
                     // -------------------- Varia dest -------------------- //
                     Arguments.of(validInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null),                                                   // R1: Superato
                     Arguments.of(validInstance, null, fullByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class),                                         // R2: Superato
-//                    Arguments.of(validInstance, null, invalidWriteIndexByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class),                            // R3: Fallito --> La read non ha lanciato l'eccezione attesa
+                    Arguments.of(validInstance, null, invalidWriteIndexByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class),                            // R3: Fallito --> La read non ha lanciato l'eccezione attesa
                     Arguments.of(validInstance, null, deallocatedByteBuf(), 0, BC_FC_CONTENT.length(), Exception.class),                                  // R4: Superato
                     Arguments.of(validInstance, null, null, 0, BC_FC_CONTENT.length(), Exception.class),                                                  // R5: Superato
 
                     // -------------------- Variano pos e length -------------------- //
                     Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), -1, 1, Exception.class),                                                   // R6: Superato
-//                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 1, -1, Exception.class),                                                   // R7: Fallito --> La read non ha lanciato l'eccezione attesa
+                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 1, -1, Exception.class),                                                   // R7: Fallito --> La read non ha lanciato l'eccezione attesa
                     Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, 0, null),                                                               // R8: Superato
                     Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, 1, null),                                                               // R9: Superato
                     Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() - 1, null),                                      // R10: Superato
@@ -81,14 +81,17 @@ public class BufferedChannelReadTest {
                     Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), 1, Exception.class),      // R18: Superato
 
                     // -------------------- Istanze fallite del costruttore -------------------- //
-//                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                                  // R19 (T2): Fallito --> La read non ha lanciato l'eccezione attesa
+                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                                  // R19 (T2): Fallito --> La read non ha lanciato l'eccezione attesa
                     Arguments.of(invalidPositionInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                                   // R20 (T7): Superato
 
                     // -------------------- FileChannel non valido -------------------- //
                     Arguments.of(writeOnlyFileChannelInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                              // R21: Superato
 
                     // -------------------- readCapacity non valida -------------------- //
-                    Arguments.of(invalidReadCapacityInstance, null, emptyByteBuf(), 0, 1, Exception.class)                                                // R22: Superato
+                    Arguments.of(invalidReadCapacityInstance, null, emptyByteBuf(), 0, 1, Exception.class)                                               // R22: Superato
+
+                    // -------------------- Aggiunti dopo l'analisi con Jacoco -------------------- //
+
             );
 
         } catch (IOException e) {

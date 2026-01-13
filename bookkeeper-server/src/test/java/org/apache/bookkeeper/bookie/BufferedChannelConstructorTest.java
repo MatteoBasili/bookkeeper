@@ -38,14 +38,14 @@ public class BufferedChannelConstructorTest {
             return Stream.of(
                     // -------------------- Varia l'allocatore -------------------- //
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, null),              // T1: Superato
-//                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, Exception.class),             // T2: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, Exception.class),             // T2: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
                     Arguments.of(null, validFileChannel(), 256, 256, 128, Exception.class),                         // T3: Superato
 
                     // -------------------- Varia il file channel -------------------- //
                     Arguments.of(unpooledByteBufAllocator(), closedFileChannel(), 256, 256, 128, Exception.class),  // T4: Superato
                     Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, null),           // T5: Superato
                     Arguments.of(unpooledByteBufAllocator(), writeOnlyFileChannel(), 256, 256, 128, null),          // T6: Superato
-//                    Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 256, 256, 128, Exception.class),  // T7: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+                    Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 256, 256, 128, Exception.class),  // T7: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
                     Arguments.of(unpooledByteBufAllocator(), null, 256, 256, 128, Exception.class),                 // T8: Superato
 
                     // -------------------- Varia writeCapacity -------------------- //
@@ -59,7 +59,7 @@ public class BufferedChannelConstructorTest {
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 1, 128, null),                // T14: Superato
 
                     // -------------------- Varia unpersistedBytesBound -------------------- //
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, Exception.class),             // T15: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, Exception.class),             // T15: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, null),                // T16: Superato
                     Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 1, null)                 // T17: Superato
             );
