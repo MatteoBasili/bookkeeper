@@ -241,7 +241,55 @@ public class BufferedChannelReadTest {
         return tmp.toString(StandardCharsets.UTF_8);
     }
 
-    // ============================ PULIZIA DOPO OGNI TEST ============================ //
+    private static Stream<Arguments> baduaTestCases() {
+
+        try {
+            BufferedChannelInstance validInstance =
+                    new BufferedChannelInstance(unpooledByteBufAllocator(),
+                            validFileChannel(), 256, 256, 128);
+
+            // Parametri: istanza, contenutoWriteBuffer, destPrimaRead, posPrimaRead, lengthPrimaRead,
+            //            destSecondaRead, posSecondaRead, lengthSecondaRead
+            return Stream.of(
+                    Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 0, BC_FC_CONTENT.length())            // B-R1: Superato
+            );
+        } catch (IOException e) {
+            throw new RuntimeException("Errore nella preparazione dei casi di test", e);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("baduaTestCases")
+    @Timeout(value = 5, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    void testBaduaRead(BufferedChannelInstance instance, String writeBufferContent, ByteBuf firstDest, long firstPos,
+                              int firstLength, ByteBuf secondDest, long secondPos,
+                          int secondLength) {
+
+        BufferedChannel channel = createBufferedChannel(instance, writeBufferContent);
+        try {
+            int initialFirstWriterIndex = firstDest.writerIndex();
+            channel.read(firstDest, firstPos, firstLength);
+            int finalFirstWriterIndex = firstDest.writerIndex();
+
+            int initialSecondWriterIndex = secondDest.writerIndex();
+            channel.read(secondDest, secondPos, secondLength);
+            int finalSecondWriterIndex = secondDest.writerIndex();
+
+            boolean writeBufferIsNull = channel.writeBuffer == null;
+            String firstExpected = computeExpectedRead(channel, firstPos, firstLength, writeBufferIsNull);
+            String secondExpected = computeExpectedRead(channel, secondPos, secondLength, writeBufferIsNull);
+            String firstActual = extractWrittenString(firstDest, initialFirstWriterIndex, finalFirstWriterIndex);
+            String secondActual = extractWrittenString(secondDest, initialSecondWriterIndex, finalSecondWriterIndex);
+
+            Assertions.assertEquals(firstExpected, firstActual, "Il buffer di destinazione della prima lettura non contiene il contenuto atteso");
+            Assertions.assertEquals(secondExpected, secondActual, "Il buffer di destinazione della seconda lettura non contiene il contenuto atteso");
+        } catch (Exception e) {
+            throw new RuntimeException("Errore inatteso durante l'esecuzione delle due read di BufferedChannel", e);
+        }
+    }
+
+
+        // ============================ PULIZIA DOPO OGNI TEST ============================ //
 
     /**
      * Elimina il file di test dopo ogni esecuzione per evitare interferenze.
