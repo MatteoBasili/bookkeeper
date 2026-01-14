@@ -88,10 +88,11 @@ public class BufferedChannelReadTest {
                     Arguments.of(writeOnlyFileChannelInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                              // R21: Superato
 
                     // -------------------- readCapacity non valida -------------------- //
-                    Arguments.of(invalidReadCapacityInstance, null, emptyByteBuf(), 0, 1, Exception.class)                                               // R22: Superato
+                    Arguments.of(invalidReadCapacityInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                               // R22: Superato
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco -------------------- //
-//                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), BC_FC_CONTENT.length(), 1, null)                             // J-R1:
+                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), BC_FC_CONTENT.length(), 1, null),                             // J-R1: Superato
+                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null)                             // J-R2: Superato
 
             );
 
