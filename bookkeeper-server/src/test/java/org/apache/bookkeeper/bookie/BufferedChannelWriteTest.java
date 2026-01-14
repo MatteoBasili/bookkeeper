@@ -54,7 +54,7 @@ public class BufferedChannelWriteTest {
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, byteBufWithContent(), Exception.class),                           // W10 (T15): Fallito --> La write non ha lanciato l'eccezione attesa
 
                     // -------------------- FileChannel non valido -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class)            // W11: Superato
+                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class),            // W11: Superato
 
                     // -------------------- writeCapacity non valida -------------------- //
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 256, 128, byteBufWithContent(), Exception.class),                            // W12: Errore --> Timeout
@@ -63,7 +63,7 @@ public class BufferedChannelWriteTest {
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, byteBufWithContent(), null)                                        // W13: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco (BC_BB_CONTENT di lunghezza pari) -------------------- //
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null)      // J-W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null)      // J-W1: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), (BC_BB_CONTENT.length() / 2) + 1, 256, 0, byteBufWithContent(), null)          // J-W2: Fallito --> I byte non vengono scritti sul FileChannel
             );
         } catch (IOException e) {
