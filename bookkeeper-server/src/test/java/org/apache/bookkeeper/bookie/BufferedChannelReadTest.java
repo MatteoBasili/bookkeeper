@@ -247,16 +247,21 @@ public class BufferedChannelReadTest {
                     new BufferedChannelInstance(unpooledByteBufAllocator(),
                             validFileChannel(), 256, 256, 128);
 
+            /*BufferedChannelInstance notEnoughReadCapacityInstance =
+                    new BufferedChannelInstance(unpooledByteBufAllocator(),
+                            validFileChannel(), 256, BC_FC_CONTENT.length() - 1, 128);*/
+
             BufferedChannelInstance notEnoughReadCapacityInstance =
                     new BufferedChannelInstance(unpooledByteBufAllocator(),
-                            validFileChannel(), 256, BC_FC_CONTENT.length() - 1, 128);
+                            validFileChannel(), BC_FC_CONTENT.length() - 1, BC_FC_CONTENT.length() - 1, 128);
 
             // Parametri: istanza, contenutoWriteBuffer, destPrimaRead, posPrimaRead, lengthPrimaRead,
             //            destSecondaRead, posSecondaRead, lengthSecondaRead
             return Stream.of(
                     Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 0, BC_FC_CONTENT.length()),                // B-R1: Superato
                     Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1),            // B-R2: Superato
-                    Arguments.of(notEnoughReadCapacityInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), emptyByteBuf(), 0, BC_FC_CONTENT.length())     // B-R3: Superato
+//                    Arguments.of(notEnoughReadCapacityInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), emptyByteBuf(), 0, BC_FC_CONTENT.length())     // B-R3: Superato
+                    Arguments.of(notEnoughReadCapacityInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), emptyByteBuf(), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length())
             );
         } catch (IOException e) {
             throw new RuntimeException("Errore nella preparazione dei casi di test", e);
