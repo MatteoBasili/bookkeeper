@@ -251,7 +251,8 @@ public class BufferedChannelReadTest {
             // Parametri: istanza, contenutoWriteBuffer, destPrimaRead, posPrimaRead, lengthPrimaRead,
             //            destSecondaRead, posSecondaRead, lengthSecondaRead
             return Stream.of(
-                    Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 0, BC_FC_CONTENT.length())            // B-R1: Superato
+                    Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 0, BC_FC_CONTENT.length()),            // B-R1: Superato
+                    Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1)            // B-R2: Superato
             );
         } catch (IOException e) {
             throw new RuntimeException("Errore nella preparazione dei casi di test", e);
