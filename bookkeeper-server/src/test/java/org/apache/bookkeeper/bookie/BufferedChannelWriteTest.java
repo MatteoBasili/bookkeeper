@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.exceptions.base.MockitoAssertionError;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test unitari per il metodo write di {@link BufferedChannel}.
@@ -63,8 +66,15 @@ public class BufferedChannelWriteTest {
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, byteBufWithContent(), null)                                        // W13: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco (BC_BB_CONTENT di lunghezza pari) -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null)      // J-W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null),      // J-W1: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), (BC_BB_CONTENT.length() / 2) + 1, 256, 0, byteBufWithContent(), null)          // J-W2: Fallito --> I byte non vengono scritti sul FileChannel
+
+                    // -------------------- Aggiunti dopo l'analisi con PIT (BC_BB_CONTENT.length() > 4) -------------------- //
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 1, byteBufWithContent(), null),      // P-W1: Superato
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 3, byteBufWithContent(), null)               // P-W2: Fallito --> Il contenuto scritto nel file channel è diverso da quello aspettato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, BC_BB_CONTENT.length(), byteBufWithContent(), null),         // P-W3: Superato
+                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(200), null),                         // P-W4: Superato
+                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(100), null)                         // P-W5: Superato
             );
         } catch (IOException e) {
             throw new RuntimeException("Errore nella preparazione dei casi di test", e);
@@ -111,41 +121,112 @@ public class BufferedChannelWriteTest {
             // Esegui la scrittura
             bc.write(src);
 
-            // -------------------- Controlla il contenuto scritto -------------------- //
-            boolean fileChannelWritten = expectedWrittenContentLength > unpersistedBytesBound;
-            String actualWrittenContent;
+            // -------------------- Controlla il contenuto scritto (aggiornato dopo PIT) -------------------- //
+            int expectedFcWrittenBytesLength;
+            int expectedWbWrittenBytesLength;
+            String expectedFcWrittenContent;
+            String expectedWbWrittenContent;
+            String actualFcWrittenContent;
+            String actualWbWrittenContent;
 
-            if (fileChannelWritten) {
-                ByteBuffer bb = ByteBuffer.allocate(expectedWrittenContentLength);
-                fc.read(bb, initialFcPosition);
-                bb.flip();
-                actualWrittenContent = new String(bb.array(), 0, bb.limit());
-                Assertions.assertEquals(expectedWrittenContent, actualWrittenContent, "Il contenuto scritto nel file channel è diverso da quello aspettato");
+            if (unpersistedBytesBound < 1) {  // CASO 1: tutto è flushato nel file channel
+                expectedFcWrittenContent = expectedWrittenContent;
+                expectedWbWrittenContent = "";
 
-                long absolutePosition = initialFcPosition + expectedWrittenContentLength;
+            } else if (expectedWrittenContentLength <= writeCapacity) {
+                if (expectedWrittenContentLength < unpersistedBytesBound) {  // CASO 2: tutto rimane scritto nel buffer
+                    expectedFcWrittenContent = "";
+                    expectedWbWrittenContent = expectedWrittenContent;
 
-                expectedPosition                 = absolutePosition;
-                expectedUnpersistedBytes         = 0L;
-                expectedWriteBufferStartPosition = absolutePosition;
+                    // Verifica forceWrite non lanciata (solo se spy)
+                    if (shouldVerifyForceWrite(fc)) {
+                        verifyNotForceWrite(fc);
+                    }
 
-            } else {  // è stato scritto il writeBuffer
-                ByteBuf actualWrittenBuffer = Unpooled.buffer(expectedWrittenContentLength);
-                bc.writeBuffer.getBytes(0, actualWrittenBuffer, expectedWrittenContentLength);
-                actualWrittenContent = actualWrittenBuffer.toString(StandardCharsets.UTF_8);
-                Assertions.assertEquals(expectedWrittenContent, actualWrittenContent, "Il contenuto scritto nel write buffer è diverso da quello aspettato");
+                } else {  // CASO 3: tutto è flushato nel file channel
+                    expectedFcWrittenContent = expectedWrittenContent;
+                    expectedWbWrittenContent = "";
 
-                expectedPosition                 = initialFcPosition + expectedWrittenContentLength;
-                expectedUnpersistedBytes         = expectedWrittenContentLength;
-                expectedWriteBufferStartPosition = initialFcPosition;
+                    // Verifica forceWrite (solo se spy)
+                    if (shouldVerifyForceWrite(fc)) {
+                        verifyForceWrite(fc);
+                    }
+                }
+            } else {
+                int lastBytesWrittenOnWbLength = expectedWrittenContentLength % writeCapacity;
+                if (lastBytesWrittenOnWbLength == 0) {  // CASO 4: tutto è flushato nel file channel
+                    expectedFcWrittenContent = expectedWrittenContent;
+                    expectedWbWrittenContent = "";
+
+                } else {
+                    int bytesWrittenOnFcLength = expectedWrittenContentLength - lastBytesWrittenOnWbLength;
+                    if (lastBytesWrittenOnWbLength >= unpersistedBytesBound) {  // CASO 5: tutto è flushato nel file channel
+                        expectedFcWrittenContent = expectedWrittenContent;
+                        expectedWbWrittenContent = "";
+
+                        // Verifica forceWrite (solo se spy)
+                        if (shouldVerifyForceWrite(fc)) {
+                            verifyForceWrite(fc);
+                        }
+
+                    } else {  // CASO 6: l'ultima parte è nel buffer, mentre la restante è flushata nel file channel
+                        expectedFcWrittenContent = expectedWrittenContent.substring(0, bytesWrittenOnFcLength);
+                        expectedWbWrittenContent = expectedWrittenContent.substring(bytesWrittenOnFcLength, expectedWrittenContentLength);
+
+                        // Verifica forceWrite non lanciata (solo se spy)
+                        if (shouldVerifyForceWrite(fc)) {
+                            verifyNotForceWrite(fc);
+                        }
+                    }
+                }
             }
 
-            // -------------------- Controlla i campi della classe -------------------- //
+            expectedFcWrittenBytesLength = expectedFcWrittenContent.length();
+            expectedWbWrittenBytesLength = expectedWbWrittenContent.length();
+
+            ByteBuffer bb = ByteBuffer.allocate(expectedWrittenContentLength);
+            fc.read(bb, initialFcPosition);
+            bb.flip();
+            actualFcWrittenContent = new String(bb.array(), 0, bb.limit());
+
+            ByteBuf actualWrittenBuffer = Unpooled.buffer(expectedWrittenContentLength);
+            bc.writeBuffer.getBytes(0, actualWrittenBuffer, expectedWbWrittenBytesLength);
+            actualWbWrittenContent = actualWrittenBuffer.toString(StandardCharsets.UTF_8);
+
+            Assertions.assertEquals(expectedFcWrittenContent, actualFcWrittenContent, "Il contenuto scritto nel file channel è diverso da quello aspettato");
+            Assertions.assertEquals(expectedWbWrittenContent, actualWbWrittenContent, "Il contenuto scritto nel write buffer è diverso da quello aspettato");
+
+            // =====================================  Controlla i campi della classe ====================================== //
+            expectedPosition                 = initialFcPosition + expectedWrittenContentLength;
+            expectedUnpersistedBytes         = expectedWbWrittenBytesLength;
+            expectedWriteBufferStartPosition = initialFcPosition + expectedFcWrittenBytesLength;
+
             Assertions.assertEquals(expectedPosition,                   bc.position, "Posizione non corretta");
             Assertions.assertEquals(expectedUnpersistedBytes,           bc.unpersistedBytes.get(), "Unpersisted Bytes non corretti");
             Assertions.assertEquals(expectedWriteBufferStartPosition,   bc.writeBufferStartPosition.get(), "Posizione iniziale del write Buffer non corretta");
 
         } catch (Exception e) {
             throw new RuntimeException("Errore inatteso durante l'esecuzione della write di BufferedChannel", e);
+        }
+    }
+
+    private boolean shouldVerifyForceWrite(FileChannel fc) {
+        return org.mockito.Mockito.mockingDetails(fc).isSpy();
+    }
+
+    private void verifyForceWrite(FileChannel fc) throws IOException {
+        try {
+            verify(fc).force(false);
+        } catch (MockitoAssertionError e) {
+            throw new AssertionError("forceWrite non è stato chiamato come previsto", e);
+        }
+    }
+
+    private void verifyNotForceWrite(FileChannel fc) throws IOException {
+        try {
+            verify(fc, never()).force(false);
+        } catch (MockitoAssertionError e) {
+            throw new AssertionError("forceWrite è stato chiamato quando invece non era previsto", e);
         }
     }
 

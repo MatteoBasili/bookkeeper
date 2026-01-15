@@ -87,6 +87,10 @@ public class BufferedChannelUtils {
         return fc;
     }
 
+    public static FileChannel spiedFileChannel() throws IOException {
+        return spy(validFileChannel());
+    }
+
     // ===================== BYTEBUFFERS ===================== //
 
     public static ByteBuf emptyByteBuf() {
@@ -112,6 +116,10 @@ public class BufferedChannelUtils {
         Arrays.fill(data, (byte) 'a');
         buffer.writeBytes(data);
         return buffer;
+    }
+
+    public static ByteBuf emptyByteBufWithLength(int len) {
+        return Unpooled.buffer(len, len);
     }
 
     public static ByteBuf invalidReadIndexByteBuf() {

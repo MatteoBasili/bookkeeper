@@ -92,7 +92,10 @@ public class BufferedChannelReadTest {
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco -------------------- //
                     Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), BC_FC_CONTENT.length(), 1, null),                             // J-R1: Superato
-                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null)                             // J-R2: Superato
+                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null),                             // J-R2: Superato
+
+                    // -------------------- Aggiunti dopo l'analisi con PIT -------------------- //
+                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBufWithLength(BC_FC_CONTENT.length() + BC_BB_CONTENT.length()), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), null)          // P-R1: Superato
             );
 
         } catch (IOException e) {
@@ -150,7 +153,7 @@ public class BufferedChannelReadTest {
         try {
             int initialWriterIndex = destination.writerIndex();
 
-            channel.read(destination, position, length);
+            int bytesRead = channel.read(destination, position, length);
 
             int finalWriterIndex = destination.writerIndex();
             boolean writeBufferIsNull = channel.writeBuffer == null;
@@ -158,7 +161,18 @@ public class BufferedChannelReadTest {
             String expected = computeExpectedRead(channel, position, length, writeBufferIsNull);
             String actual = extractWrittenString(destination, initialWriterIndex, finalWriterIndex);
 
-            Assertions.assertEquals(expected, actual, "Il buffer di destinazione non contiene il contenuto atteso");
+            Assertions.assertEquals(
+                    bytesRead,
+                    finalWriterIndex - initialWriterIndex,
+                    "Il numero di byte letti non corrisponde allo spazio scritto nel buffer di destinazione"
+            );
+
+            Assertions.assertEquals(
+                    expected,
+                    actual,
+                    "Il buffer di destinazione non contiene il contenuto atteso"
+            );
+
         } catch (Exception e) {
             throw new RuntimeException("Errore inatteso durante l'esecuzione della read di BufferedChannel", e);
         }
@@ -251,12 +265,19 @@ public class BufferedChannelReadTest {
                     new BufferedChannelInstance(unpooledByteBufAllocator(),
                             validFileChannel(), 256, BC_FC_CONTENT.length() - 1, 128);
 
+            BufferedChannelInstance halfReadCapacityInstance =
+                    new BufferedChannelInstance(unpooledByteBufAllocator(),
+                            validFileChannel(), 256, BC_FC_CONTENT.length() / 2, 128);
+
             // Parametri: istanza, contenutoWriteBuffer, destPrimaRead, posPrimaRead, lengthPrimaRead,
             //            destSecondaRead, posSecondaRead, lengthSecondaRead
             return Stream.of(
                     Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 0, BC_FC_CONTENT.length()),                // B-R1: Superato
                     Arguments.of(validInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1),            // B-R2: Superato
-                    Arguments.of(notEnoughReadCapacityInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), emptyByteBuf(), 0, BC_FC_CONTENT.length())     // B-R3: Superato
+                    Arguments.of(notEnoughReadCapacityInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), emptyByteBuf(), 0, BC_FC_CONTENT.length()),     // B-R3: Superato
+
+                    // -------------------- Aggiunti dopo l'analisi con PIT -------------------- //
+                    Arguments.of(halfReadCapacityInstance, null, emptyByteBuf(), 1, BC_FC_CONTENT.length() / 2, emptyByteBuf(), BC_FC_CONTENT.length() / 2, 1)     // P-R2: Superato
             );
         } catch (IOException e) {
             throw new RuntimeException("Errore nella preparazione dei casi di test", e);
@@ -288,6 +309,7 @@ public class BufferedChannelReadTest {
 
             Assertions.assertEquals(firstExpected, firstActual, "Il buffer di destinazione della prima lettura non contiene il contenuto atteso");
             Assertions.assertEquals(secondExpected, secondActual, "Il buffer di destinazione della seconda lettura non contiene il contenuto atteso");
+
         } catch (Exception e) {
             throw new RuntimeException("Errore inatteso durante l'esecuzione delle due read di BufferedChannel", e);
         }
