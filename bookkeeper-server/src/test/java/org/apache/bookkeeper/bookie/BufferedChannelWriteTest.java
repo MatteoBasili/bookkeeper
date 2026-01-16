@@ -43,38 +43,38 @@ public class BufferedChannelWriteTest {
         try {
             return Stream.of(
                     // -------------------- Varia src -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, emptyByteBuf(), null),                               // W1: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(127), null),                       // W2: Superato
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(128), null),                       // W3: Fallito --> Buffer scritto, ma unpersistedBytes non coerente
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(129), null),                       // W4: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, invalidReadIndexByteBuf(), Exception.class),         // W5: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, deallocatedByteBuf(), Exception.class),              // W6: Superato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, null, Exception.class),                                 // W7: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, emptyByteBuf(), null),                     // W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(127), null),                     // W2: Superato
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(128), null),                              // W3: Fallito --> Buffer scritto, ma unpersistedBytes non coerente
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithLength(129), null),                     // W4: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, invalidReadIndexByteBuf(), Exception.class),       // W5: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, deallocatedByteBuf(), Exception.class),            // W6: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 128, null, Exception.class),                            // W7: Superato
 
                     // -------------------- Istanze fallite del costruttore -------------------- //
-                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithContent(), Exception.class),               // W8: Superato
-//                    Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class),           // W9 (T7): Fallito --> La write non ha lanciato l'eccezione attesa
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, byteBufWithContent(), Exception.class),                           // W10 (T15): Fallito --> La write non ha lanciato l'eccezione attesa
+                    Arguments.of(invalidByteBufAllocator(), validFileChannel(), 256, 256, 128, byteBufWithContent(), Exception.class),             // W8: Superato
+//                    Arguments.of(unpooledByteBufAllocator(), invalidPositionFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class),         // W9 (T7): Fallito --> La write non ha lanciato l'eccezione attesa
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, -1, byteBufWithContent(), Exception.class),                      // W10 (T15): Fallito --> La write non ha lanciato l'eccezione attesa
 
                     // -------------------- FileChannel non valido -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class),            // W11: Superato
+                    Arguments.of(unpooledByteBufAllocator(), readOnlyFileChannel(), 256, 256, 128, byteBufWithLength(129), Exception.class),       // W11: Superato
 
                     // -------------------- writeCapacity non valida -------------------- //
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 256, 128, byteBufWithContent(), Exception.class),                            // W12: Errore --> Timeout
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 0, 256, 128, byteBufWithContent(), Exception.class),                       // W12: Errore --> Timeout
 
                     // -------------------- unpersistedBytesBound nullo -------------------- //
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, byteBufWithContent(), null)                                        // W13: Fallito --> I byte non vengono scritti sul FileChannel
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, byteBufWithContent(), null)                                   // W13: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco (BC_BB_CONTENT di lunghezza pari) -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null),      // J-W1: Superato
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), (BC_BB_CONTENT.length() / 2) + 1, 256, 0, byteBufWithContent(), null)          // J-W2: Fallito --> I byte non vengono scritti sul FileChannel
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null),  // J-W1: Superato
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), (BC_BB_CONTENT.length() / 2) + 1, 256, 0, byteBufWithContent(), null)      // J-W2: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con PIT (BC_BB_CONTENT.length() > 4) -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 1, byteBufWithContent(), null),      // P-W1: Superato
-//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 3, byteBufWithContent(), null)               // P-W2: Fallito --> Il contenuto scritto nel file channel è diverso da quello aspettato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, BC_BB_CONTENT.length(), byteBufWithContent(), null),         // P-W3: Superato
-                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(200), null),                         // P-W4: Superato
-                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(100), null)                         // P-W5: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 1, byteBufWithContent(), null),  // P-W1: Superato
+//                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 3, byteBufWithContent(), null)            // P-W2: Fallito --> Il contenuto scritto nel file channel è diverso da quello aspettato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, BC_BB_CONTENT.length(), byteBufWithContent(), null),    // P-W3: Superato
+                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(200), null),                     // P-W4: Superato
+                    Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(100), null)                      // P-W5: Superato
             );
         } catch (IOException e) {
             throw new RuntimeException("Errore nella preparazione dei casi di test", e);
