@@ -16,7 +16,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
+import static org.apache.bookkeeper.bookie.utils.Utils.*;
 
 /**
  * Test unitari per il metodo read di {@link BufferedChannel}.
@@ -66,19 +66,19 @@ public class BufferedChannelReadTest {
                     Arguments.of(validInstance, null, null, 0, BC_FC_CONTENT.length(), Exception.class),                                                  // R5: Superato
 
                     // -------------------- Variano pos e length -------------------- //
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), -1, 1, Exception.class),                                                   // R6: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), -1, 1, Exception.class),                                                   // R6: Superato
 //                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 1, -1, Exception.class),                                                            // R7: Fallito --> La read non ha lanciato l'eccezione attesa
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, 0, null),                                                               // R8: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), 0, 0, null),                                                               // R8: Superato
 //                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, 1, null),                                                                        // R9: Fallito --> Il buffer di destinazione non contiene il contenuto atteso
 //                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() - 1, null),                                               // R10: Fallito --> Il buffer di destinazione non contiene il contenuto atteso
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null),                                          // R11: Superato
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, null),                                      // R12: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null),                                          // R11: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), 1, BC_FC_CONTENT.length() - 1, null),                                      // R12: Superato
 //                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length(), 1, null),                                                   // R13: Fallito --> Il buffer di destinazione non contiene il contenuto atteso
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length() - 1, 1, null),             // R14: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length() + BB_CONTENT.length() - 1, 1, null),             // R14: Superato
 //                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + 1, null),                                               // R15: Fallito --> Il buffer di destinazione non contiene il contenuto atteso
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), null),                 // R16: Superato
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length() + 1, Exception.class),  // R17: Superato
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), 1, Exception.class),      // R18: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + BB_CONTENT.length(), null),                 // R16: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), 0, BC_FC_CONTENT.length() + BB_CONTENT.length() + 1, Exception.class),  // R17: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBuf(), BC_FC_CONTENT.length() + BB_CONTENT.length(), 1, Exception.class),      // R18: Superato
 
                     // -------------------- Istanze fallite del costruttore -------------------- //
 //                    Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, 1, Exception.class),                                                           // R19 (T2): Fallito --> La read non ha lanciato l'eccezione attesa
@@ -95,7 +95,7 @@ public class BufferedChannelReadTest {
                     Arguments.of(invalidAllocatorInstance, null, emptyByteBuf(), 0, BC_FC_CONTENT.length(), null),                                        // J-R2: Superato
 
                     // -------------------- Aggiunti dopo l'analisi con PIT -------------------- //
-                    Arguments.of(validInstance, BC_BB_CONTENT, emptyByteBufWithLength(BC_FC_CONTENT.length() + BC_BB_CONTENT.length()), 0, BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), null)  // P-R1: Superato
+                    Arguments.of(validInstance, BB_CONTENT, emptyByteBufWithLength(BC_FC_CONTENT.length() + BB_CONTENT.length()), 0, BC_FC_CONTENT.length() + BB_CONTENT.length(), null)  // P-R1: Superato
             );
 
         } catch (IOException e) {
@@ -227,7 +227,7 @@ public class BufferedChannelReadTest {
 
             return BC_FC_CONTENT.substring(
                     fileStart, fileStart + fileBytes)
-                    + BC_BB_CONTENT.substring(0, writeBufferBytes);
+                    + BB_CONTENT.substring(0, writeBufferBytes);
         }
 
         // Caso 2: lettura solo dal write buffer
@@ -237,7 +237,7 @@ public class BufferedChannelReadTest {
         int writeBufferEndingOffset =
                 writeBufferIsNull ? 0 : writeBufferStartingOffset + length;
 
-        return BC_BB_CONTENT.substring(
+        return BB_CONTENT.substring(
                 writeBufferStartingOffset,
                 writeBufferEndingOffset);
     }

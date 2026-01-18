@@ -329,4 +329,14 @@ public class WriteCache implements Closeable {
     public ByteBuf[] getCacheSegments() {
         return cacheSegments;
     }
+
+    @VisibleForTesting
+    public ConcurrentLongLongPairHashMap getIndex(){
+        return index;
+    }
+
+    @VisibleForTesting
+    public ConcurrentLongLongHashMap getLastEntryMap(){
+        return lastEntryMap;
+    }
 }

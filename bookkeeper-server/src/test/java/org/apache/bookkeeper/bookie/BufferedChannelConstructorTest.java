@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.stream.Stream;
 
-import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
+import static org.apache.bookkeeper.bookie.utils.Utils.*;
 
 /**
  * Test unitari per il costruttore di {@link BufferedChannel}.

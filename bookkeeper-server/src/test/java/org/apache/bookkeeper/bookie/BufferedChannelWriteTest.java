@@ -18,7 +18,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-import static org.apache.bookkeeper.bookie.BufferedChannelUtils.*;
+import static org.apache.bookkeeper.bookie.utils.Utils.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -66,13 +66,13 @@ public class BufferedChannelWriteTest {
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, 0, byteBufWithContent(), null)                                   // W13: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con Jacoco (BC_BB_CONTENT di lunghezza pari) -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null),  // J-W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BB_CONTENT.length() / 2, 256, 0, byteBufWithContent(), null),  // J-W1: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), (BC_BB_CONTENT.length() / 2) + 1, 256, 0, byteBufWithContent(), null)      // J-W2: Fallito --> I byte non vengono scritti sul FileChannel
 
                     // -------------------- Aggiunti dopo l'analisi con PIT (BC_BB_CONTENT.length() > 4) -------------------- //
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 1, byteBufWithContent(), null),  // P-W1: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BB_CONTENT.length() - 2, 256, 1, byteBufWithContent(), null),  // P-W1: Superato
 //                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), BC_BB_CONTENT.length() - 2, 256, 3, byteBufWithContent(), null)            // P-W2: Fallito --> Il contenuto scritto nel file channel è diverso da quello aspettato
-                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, BC_BB_CONTENT.length(), byteBufWithContent(), null),    // P-W3: Superato
+                    Arguments.of(unpooledByteBufAllocator(), validFileChannel(), 256, 256, BB_CONTENT.length(), byteBufWithContent(), null),    // P-W3: Superato
                     Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(200), null),                     // P-W4: Superato
                     Arguments.of(unpooledByteBufAllocator(), spiedFileChannel(), 256, 256, 128, byteBufWithLength(100), null)                      // P-W5: Superato
             );

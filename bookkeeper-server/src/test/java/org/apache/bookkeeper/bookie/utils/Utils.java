@@ -1,4 +1,4 @@
-package org.apache.bookkeeper.bookie;
+package org.apache.bookkeeper.bookie.utils;
 
 import io.netty.buffer.*;
 import java.io.IOException;
@@ -8,14 +8,14 @@ import java.util.Arrays;
 
 import static org.mockito.Mockito.*;
 
-public class BufferedChannelUtils {
+public class Utils {
 
     public static final String BC_TEST_FILE = "bc_test_file.txt";
 
     public static final String BC_FC_CONTENT = "Hello world!";
-    public static final String BC_BB_CONTENT = "Ciao mondo!!";
+    public static final String BB_CONTENT = "Ciao mondo!!";
 
-    private BufferedChannelUtils() {
+    private Utils() {
         // Classe di utilità
     }
 
@@ -94,19 +94,19 @@ public class BufferedChannelUtils {
     // ===================== BYTEBUFFERS ===================== //
 
     public static ByteBuf emptyByteBuf() {
-        return Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length() + 1, BC_FC_CONTENT.length() + BC_BB_CONTENT.length() + 1);
+        return Unpooled.buffer(BC_FC_CONTENT.length() + BB_CONTENT.length() + 1, BC_FC_CONTENT.length() + BB_CONTENT.length() + 1);
     }
 
     public static ByteBuf fullByteBuf() {
-        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length());
+        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BB_CONTENT.length(), BC_FC_CONTENT.length() + BB_CONTENT.length());
         buffer.writeBytes(BC_FC_CONTENT.getBytes());
-        buffer.writeBytes(BC_BB_CONTENT.getBytes());
+        buffer.writeBytes(BB_CONTENT.getBytes());
         return buffer;
     }
 
     public static ByteBuf semiFullByteBuf() {
-        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BC_BB_CONTENT.length(), BC_FC_CONTENT.length() + BC_BB_CONTENT.length() );
-        buffer.writeBytes(BC_BB_CONTENT.getBytes());
+        ByteBuf buffer = Unpooled.buffer(BC_FC_CONTENT.length() + BB_CONTENT.length(), BC_FC_CONTENT.length() + BB_CONTENT.length() );
+        buffer.writeBytes(BB_CONTENT.getBytes());
         return buffer;
     }
 
@@ -123,27 +123,27 @@ public class BufferedChannelUtils {
     }
 
     public static ByteBuf invalidReadIndexByteBuf() {
-        ByteBuf buffer = spy(byteBufWithLength(BC_BB_CONTENT.length()));
+        ByteBuf buffer = spy(byteBufWithLength(BB_CONTENT.length()));
         when(buffer.readerIndex()).thenReturn(-1);
         return buffer;
     }
 
     public static ByteBuf invalidWriteIndexByteBuf() {
         ByteBuf buffer = spy(semiFullByteBuf());
-        int wIdx = BC_BB_CONTENT.length();
+        int wIdx = BB_CONTENT.length();
         when(buffer.writerIndex()).thenReturn(wIdx);
         when(buffer.readerIndex()).thenReturn(wIdx + 1);
         return buffer;
     }
 
     public static ByteBuf deallocatedByteBuf() {
-        ByteBuf buffer = byteBufWithLength(BC_FC_CONTENT.length() + BC_BB_CONTENT.length());
+        ByteBuf buffer = byteBufWithLength(BC_FC_CONTENT.length() + BB_CONTENT.length());
         buffer.release(); // refCnt = 0
         return buffer;
     }
 
     public static ByteBuf byteBufWithContent() {
-        byte[] data = BC_BB_CONTENT.getBytes();
+        byte[] data = BB_CONTENT.getBytes();
         ByteBuf buffer = Unpooled.buffer(data.length, data.length);
         buffer.writeBytes(data);
         return buffer;
