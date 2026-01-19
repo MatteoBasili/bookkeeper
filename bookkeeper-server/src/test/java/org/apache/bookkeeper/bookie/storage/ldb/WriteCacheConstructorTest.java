@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
+import static org.apache.bookkeeper.bookie.utils.Utils.invalidByteBufAllocator;
 import static org.apache.bookkeeper.bookie.utils.Utils.unpooledByteBufAllocator;
 
 /**
@@ -31,12 +32,12 @@ public class WriteCacheConstructorTest {
     private static Stream<Arguments> testCases() {
         return Stream.of(
                 // -------------------- Varia l'allocatore -------------------- //
-//                Arguments.of(invalidByteBufAllocator(), 512, 128, Exception.class),              // T1: Fallito --> Era attesa un'eccezione
-//                Arguments.of(null, 512, 128, Exception.class),                               // T2: Fallito --> Era attesa un'eccezione
+//                Arguments.of(invalidByteBufAllocator(), 512, 128, Exception.class),              // T1: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+//                Arguments.of(null, 512, 128, Exception.class),                               // T2: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
 
                 // -------------------- Varia maxCacheSize -------------------- //
                 Arguments.of(unpooledByteBufAllocator(), -1, 1, Exception.class),                         // T3: Superato
-//                Arguments.of(unpooledByteBufAllocator(), 0, 1, Exception.class),                    // T4: Fallito --> Era attesa un'eccezione
+//                Arguments.of(unpooledByteBufAllocator(), 0, 1, Exception.class),                    // T4: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
                 Arguments.of(unpooledByteBufAllocator(), 1, 1, null),                               // T5: Superato
 
                 // -------------------- Varia maxSegmentSize -------------------- //
@@ -82,17 +83,10 @@ public class WriteCacheConstructorTest {
                                         int maxSegmentSize,
                                         Class<Exception> expectedException) {
 
-        try {
-            WriteCache wc = new WriteCache(allocator, maxCacheSize, maxSegmentSize);
-            // Se arriviamo qui, il costruttore NON ha lanciato eccezione → errore
-            wc.close(); // evitiamo leak
-            Assertions.fail("Era attesa un'eccezione di tipo " + expectedException.getSimpleName());
-        } catch (Exception e) {
-            Assertions.assertTrue(
-                    expectedException.isInstance(e),
-                    "Eccezione inattesa: " + e.getClass().getSimpleName()
-            );
-        }
+        Assertions.assertThrows(
+                expectedException, () -> new WriteCache(allocator, maxCacheSize, maxSegmentSize),
+                "Il costruttore non ha lanciato l'eccezione attesa: " + expectedException.getSimpleName()
+        );
     }
 
     /**
