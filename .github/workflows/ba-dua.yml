@@ -58,7 +58,6 @@ jobs:
           buffered_channel_class="org/apache/bookkeeper/bookie/BufferedChannel"
 
           xmllint --format target/$input_file > target/$modified_file
-          rm target/$input_file
           cp target/$modified_file target/badua_BufferedChannel.xml
 
           xmlstarlet ed -L -d \
@@ -83,7 +82,6 @@ jobs:
           write_cache_class="org/apache/bookkeeper/bookie/storage/ldb/WriteCache"
 
           xmllint --format target/$input_file > target/$modified_file
-          rm target/$input_file
           cp target/$modified_file target/badua_WriteCache.xml
 
           xmlstarlet ed -L -d \
