@@ -72,3 +72,28 @@ jobs:
           name: Ba-dua_BufferedChannel_Report
           path: bookkeeper-server/target/badua_BufferedChannel.xml
           if-no-files-found: error
+          
+      # Formatta il report e riducilo alla classe WriteCache
+      - name: Filter Ba-dua report for WriteCache
+        run: |
+          cd bookkeeper-server
+
+          input_file="badua.xml"
+          modified_file="badua_pretty.xml"
+          write_cache_class="org/apache/bookkeeper/bookie/storage/ldb/WriteCache"
+
+          xmllint --format target/$input_file > target/$modified_file
+          rm target/$input_file
+          cp target/$modified_file target/badua_WriteCache.xml
+
+          xmlstarlet ed -L -d \
+            "//class[not(contains(@name, '$write_cache_class'))]" \
+            target/badua_WriteCache.xml
+       
+      # Carica l'artifact per WriteCache        
+      - name: Upload WriteCache report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ba-dua_WriteCache_Report
+          path: bookkeeper-server/target/badua_WriteCache.xml
+          if-no-files-found: error
