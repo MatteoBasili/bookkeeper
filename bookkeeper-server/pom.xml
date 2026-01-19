@@ -556,8 +556,8 @@
                 <param>org.apache.bookkeeper.bookie.BufferedChannelConstructorTest</param>
                 <param>org.apache.bookkeeper.bookie.BufferedChannelReadTest</param>
                 <param>org.apache.bookkeeper.bookie.BufferedChannelWriteTest</param>
-<!--                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCacheConstructorTest</param>-->
-<!--                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCachePutTest</param>-->
+                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCacheConstructorTest</param>
+                <param>org.apache.bookkeeper.bookie.storage.ldb.WriteCachePutTest</param>
               </targetTests>
               <timeoutConstant>10000</timeoutConstant>
               <mutators> <!-- aggiungere qui solo se si desiderano mutatori specifici -->
@@ -580,6 +580,7 @@
                 <avoidCallsTo>org.apache.commons.logging</avoidCallsTo>
               </avoidCallsTo>
               <excludedMethods>
+			    <!-- BufferedChannel -->
                 <excludedMethod>close</excludedMethod>
 				<excludedMethod>flushAndForceWrite</excludedMethod> 
 				<excludedMethod>flushAndForceWriteIfRegularFlush</excludedMethod>
@@ -590,7 +591,18 @@
 				<excludedMethod>position</excludedMethod> 				
 				<excludedMethod>forceWrite</excludedMethod>
                 <excludedMethod>flush</excludedMethod>				
-<!--                <excludedMethod>getDoRegularFlushes</excludedMethod>-->
+                <!-- WriteCache -->
+				<excludedMethod>get</excludedMethod>
+				<excludedMethod>hasEntry</excludedMethod>
+				<excludedMethod>getLastEntry</excludedMethod>
+				<excludedMethod>deleteLedger</excludedMethod>
+				<excludedMethod>forEach</excludedMethod>
+				<excludedMethod>size</excludedMethod>
+				<excludedMethod>count</excludedMethod>
+				<excludedMethod>isEmpty</excludedMethod>
+				<excludedMethod>align64</excludedMethod>
+				<excludedMethod>alignToPowerOfTwo</excludedMethod>
+				<excludedMethod>align64</excludedMethod>
               </excludedMethods>
               <verbose>false</verbose>
             </configuration>
