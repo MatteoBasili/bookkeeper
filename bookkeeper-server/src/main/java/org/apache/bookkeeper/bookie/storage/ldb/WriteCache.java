@@ -339,4 +339,14 @@ public class WriteCache implements Closeable {
     public ConcurrentLongLongHashMap getLastEntryMap(){
         return lastEntryMap;
     }
+
+    @VisibleForTesting
+    public long getSegmentOffsetMask() {
+        return segmentOffsetMask;
+    }
+
+    @VisibleForTesting
+    public long getSegmentOffsetBits() {
+        return segmentOffsetBits;
+    }
 }

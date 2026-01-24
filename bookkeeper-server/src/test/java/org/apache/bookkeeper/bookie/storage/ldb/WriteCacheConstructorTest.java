@@ -32,22 +32,22 @@ public class WriteCacheConstructorTest {
     private static Stream<Arguments> testCases() {
         return Stream.of(
                 // -------------------- Varia l'allocatore -------------------- //
-//                Arguments.of(invalidByteBufAllocator(), 512, 128, Exception.class),              // T1: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
-//                Arguments.of(null, 512, 128, Exception.class),                               // T2: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+//                Arguments.of(invalidByteBufAllocator(), 512, 128, Exception.class),            // T1: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+//                Arguments.of(null, 512, 128, Exception.class),                                 // T2: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
 
                 // -------------------- Varia maxCacheSize -------------------- //
-                Arguments.of(unpooledByteBufAllocator(), -1, 1, Exception.class),                         // T3: Superato
-//                Arguments.of(unpooledByteBufAllocator(), 0, 1, Exception.class),                    // T4: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
-                Arguments.of(unpooledByteBufAllocator(), 1, 1, null),                               // T5: Superato
+                Arguments.of(unpooledByteBufAllocator(), -1, 1, Exception.class),     // T3: Superato
+//                Arguments.of(unpooledByteBufAllocator(), 0, 1, Exception.class),               // T4: Fallito --> Il costruttore non ha lanciato l'eccezione attesa
+                Arguments.of(unpooledByteBufAllocator(), 1, 1, null),                 // T5: Superato
 
                 // -------------------- Varia maxSegmentSize -------------------- //
-                Arguments.of(unpooledByteBufAllocator(), 512, -1, Exception.class),          // T6: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 0, Exception.class),         // T7: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 1, null),                 // T8: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 100, Exception.class),    // T9: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 128, null),                // T10: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 512, null),                // T11: Superato
-                Arguments.of(unpooledByteBufAllocator(), 512, 600, Exception.class)                // T12: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, -1, Exception.class),   // T6: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 0, Exception.class),    // T7: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 1, null),               // T8: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 100, Exception.class),  // T9: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 128, null),             // T10: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 512, null),             // T11: Superato
+                Arguments.of(unpooledByteBufAllocator(), 512, 600, Exception.class)   // T12: Superato
         );
     }
 
@@ -117,6 +117,10 @@ public class WriteCacheConstructorTest {
                         "La dimensione dei segmenti della cache non corrisponde"
                 );
             }
+
+            // -------------------- Aggiunte dopo l'analisi con PIT -------------------- //
+            Assertions.assertEquals(maxSegmentSize - 1, wc.getSegmentOffsetMask(), "Segment Offset Mask non corrisponde");
+            Assertions.assertEquals(63 - Long.numberOfLeadingZeros(maxSegmentSize), wc.getSegmentOffsetBits(), "Segment Offset Bits non corrisponde");
 
         } catch (Exception e) {
             throw new RuntimeException("Errore inatteso nella costruzione di WriteCache", e);

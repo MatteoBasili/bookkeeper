@@ -25,6 +25,8 @@ public class WriteCachePutTest {
 
     private enum WcType {
         WRITTEN,
+        ONE_SEGMENT_WRITTEN,
+        HALF_SEGMENT_WRITTEN,
         EMPTY
     }
 
@@ -44,30 +46,39 @@ public class WriteCachePutTest {
         WriteCacheInstance validInstance2 = new WriteCacheInstance(unpooledByteBufAllocator(), 32, 16, WcType.EMPTY);   // maxSegmentSize < entryByte
         WriteCacheInstance zeroMaxCacheSizeInstance = new WriteCacheInstance(unpooledByteBufAllocator(),  0, 1, WcType.EMPTY);
         WriteCacheInstance validWrittenInstance = new WriteCacheInstance(unpooledByteBufAllocator(),  512, 256, WcType.WRITTEN);
+        WriteCacheInstance maxSegSize2MaxCacheSizeInstance = new WriteCacheInstance(unpooledByteBufAllocator(),  512, 1024, WcType.EMPTY);
+        WriteCacheInstance validOneSegmentWrittenInstance = new WriteCacheInstance(unpooledByteBufAllocator(),  256, 128, WcType.ONE_SEGMENT_WRITTEN);
+        WriteCacheInstance validHalfSegmentWrittenInstance = new WriteCacheInstance(unpooledByteBufAllocator(),  256, 128, WcType.HALF_SEGMENT_WRITTEN);
 
         return Stream.of(
                 // -------------------- Varia ledgerId -------------------- //
-                Arguments.of(validInstance1, -1, 1, fullByteBuf(), Exception.class, false),                      // P1: Superato
-                Arguments.of(validInstance1, 0, 1, fullByteBuf(), null, true),                     // P2: Superato
+                Arguments.of(validInstance1, -1, 1, fullByteBuf(), Exception.class, false),                 // P1: Superato
+                Arguments.of(validInstance1, 0, 1, fullByteBuf(), null, true),                              // P2: Superato
 
                 // -------------------- Varia entryId -------------------- //
-                Arguments.of(validInstance1, 1, -1, fullByteBuf(), Exception.class, false),                              // P3: Superato
-                Arguments.of(validInstance1, 1, 0, fullByteBuf(), null, true),                     // P4: Superato
+                Arguments.of(validInstance1, 1, -1, fullByteBuf(), Exception.class, false),                 // P3: Superato
+                Arguments.of(validInstance1, 1, 0, fullByteBuf(), null, true),                              // P4: Superato
 
                 // -------------------- Varia entry -------------------- //
-                Arguments.of(validInstance1, 1, 1, emptyByteBuf(), null, true),       // P5: Superato
-                Arguments.of(validInstance1, 1, 1, fullByteBuf(), null, true),            // P6: Superato
-                Arguments.of(validInstance2, 1, 1, fullByteBuf(), null, false),                            // P7: Superato
-                Arguments.of(validInstance1, 1, 1, invalidReadIndexByteBuf(), Exception.class, false),             // P8: Superato
-                Arguments.of(validInstance1, 1, 1, deallocatedByteBuf(), Exception.class, false),         // P9: Superato
-                Arguments.of(validInstance1, 1, 1, null, Exception.class, false),                      // P10: Superato
+                Arguments.of(validInstance1, 1, 1, emptyByteBuf(), null, true),                             // P5: Superato
+                Arguments.of(validInstance1, 1, 1, fullByteBuf(), null, true),                              // P6: Superato
+                Arguments.of(validInstance2, 1, 1, fullByteBuf(), null, false),                             // P7: Superato
+                Arguments.of(validInstance1, 1, 1, invalidReadIndexByteBuf(), Exception.class, false),      // P8: Superato
+                Arguments.of(validInstance1, 1, 1, deallocatedByteBuf(), Exception.class, false),           // P9: Superato
+                Arguments.of(validInstance1, 1, 1, null, Exception.class, false),                           // P10: Superato
 
                 // -------------------- Istanze fallite del costruttore -------------------- //
-                Arguments.of(zeroMaxCacheSizeInstance, 1, 1, fullByteBuf(), null, false),       // P11: Superato
+                Arguments.of(zeroMaxCacheSizeInstance, 1, 1, fullByteBuf(), null, false),                   // P11: Superato
 
                 // -------------------- Aggiunti dopo l'analisi con Jacoco -------------------- //
-                Arguments.of(validWrittenInstance, 1, 1, fullByteBuf(), null, true),      // J-P1: Superato
-                Arguments.of(validWrittenInstance, 1, 3, fullByteBuf(), null, true)       // J-P2: Superato
+                Arguments.of(validWrittenInstance, 1, 1, fullByteBuf(), null, true),                        // J-P1: Superato
+                Arguments.of(validWrittenInstance, 1, 3, fullByteBuf(), null, true),                        // J-P2: Superato
+
+                // -------------------- Aggiunti dopo l'analisi con Pitest -------------------- //
+                Arguments.of(maxSegSize2MaxCacheSizeInstance, 1, 1, byteBufWithLength(1024), null, false),  // P-P1: Superato
+                Arguments.of(validOneSegmentWrittenInstance, 1, 1, byteBufWithLength(128), null, true),     // P-P2: Superato
+//                Arguments.of(validHalfSegmentWrittenInstance, 1, 1, byteBufWithLength(128), null, true)              // P-P3: Fallito --> Il valore di ritorno della put non corrisponde
+                Arguments.of(validHalfSegmentWrittenInstance, 1, 1, byteBufWithLength(128), null, false)    // P-P4: Superato
         );
     }
 
@@ -106,8 +117,16 @@ public class WriteCachePutTest {
         long firstPutLedgerId = 1;
         int firstPutEntryId = -1;
         int firstPutEntrySize = 0;
-        if (instance.type == WcType.WRITTEN){
-            ByteBuf firstPutEntry = fullByteBuf();
+        if (instance.type == WcType.WRITTEN || instance.type == WcType.ONE_SEGMENT_WRITTEN || instance.type == WcType.HALF_SEGMENT_WRITTEN) {
+            ByteBuf firstPutEntry;
+            if  (instance.type == WcType.WRITTEN) {
+                firstPutEntry = fullByteBuf();
+            } else if  (instance.type == WcType.ONE_SEGMENT_WRITTEN) {
+                firstPutEntry = byteBufWithLength(wc.getMaxSegmentSize());
+            } else {
+                firstPutEntry = byteBufWithLength(wc.getMaxSegmentSize() / 2);
+            }
+
             firstPutEntryId = 2;
             firstPutEntrySize = firstPutEntry.readableBytes();
             if (!wc.put(firstPutLedgerId, firstPutEntryId, firstPutEntry)) throw new RuntimeException("La prima put ha fallito");
@@ -127,7 +146,7 @@ public class WriteCachePutTest {
 
             long expectedSize = expectedReturn ? entry.readableBytes() : 0;
             long expectedCount = expectedReturn ? 1 : 0;
-            if (instance.type == WcType.WRITTEN) {
+            if (instance.type == WcType.WRITTEN || instance.type == WcType.ONE_SEGMENT_WRITTEN || instance.type == WcType.HALF_SEGMENT_WRITTEN) {
                 expectedSize += firstPutEntrySize;
                 expectedCount += 1;
             }
@@ -145,7 +164,7 @@ public class WriteCachePutTest {
             ConcurrentLongLongPairHashMap.LongPair actualStoredPair = wc.getIndex().get(ledgerId, entryId);
             if (actualReturn) {
                 long expectedOffset = 0;
-                if (instance.type == WcType.WRITTEN) {
+                if (instance.type == WcType.WRITTEN || instance.type == WcType.ONE_SEGMENT_WRITTEN || instance.type == WcType.HALF_SEGMENT_WRITTEN) {
                     expectedOffset = WriteCache.align64(firstPutEntrySize);
                 }
 
